@@ -7,7 +7,7 @@ pp = pprint.PrettyPrinter(indent=4)
 
 # Determines if incoming message is worthy of punishment
 def should_punish(message):
-    return message.startswith('Liked') or message.startswith('Disliked') or message.startswith('Loved "') or message.startswith('Laughed at') or message.startswith('Emphasized') or message.startswith('Questioned')
+    return message.startswith('Liked') or message.startswith('Disliked') or message.startswith('Loved ') or message.startswith('Laughed at') or message.startswith('Emphasized') or message.startswith('Questioned')
 
 # Returns the punished message
 def get_punished_message(message):

@@ -3,7 +3,7 @@
 import json
 import pprint
 import requests
-from websocket import create_connection
+import websocket
 from pushbullet import Pushbullet
 import sys
 import punisher
@@ -34,7 +34,8 @@ threads_list = r.json()
 # Open websocket connection stream
 print("\nOpening websocket connection...\n")
 
-ws = create_connection("wss://stream.pushbullet.com/websocket/" + credentials.api_key)
+ws = websocket.WebSocket()
+ws.connect("wss://stream.pushbullet.com/websocket/" + credentials.api_key)
 
 print("\nConnected. Beginning stream.\n")
 
@@ -47,26 +48,26 @@ while True:
         message = result["push"]["notifications"][0]
         thread_id = message["thread_id"]
 
-        # print("\n\nThread id: %s\n" % thread_id)
-
-        addresses = []
-
-        print("\nCollecting addresses...")
-
-        for thread in threads_list["threads"]:
-            if thread["id"] == thread_id:
-                for recipient in thread["recipients"]:
-                    addresses.append(recipient["address"])
-                break
-
         message_text = str(message["body"])
 
         if punisher.should_punish(message_text):
+            # collect messages
+            addresses = []
+
+            print("\nCollecting addresses...")
+
+            for thread in threads_list["threads"]:
+                if thread["id"] == thread_id:
+                    for recipient in thread["recipients"]:
+                        addresses.append(recipient["address"])
+                    break
+
             punisher.send_sms(addresses, message_text, device_iden)
 
-    except Exception as ex:
-        # print("\n%s\n" % (ex))
+    except KeyError as err:
         sys.stdout.write(".")
         sys.stdout.flush()
+    except Exception as ex:
+        print(str(ex))
 
 ws.close()
